@@ -7,8 +7,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1] / "public"
 LIME = (204, 255, 0)
 INK = (13, 13, 14)
-V = ["10001", "10001", "10001", "01010", "01010", "00100", "00100"]
-B = ["11110", "10001", "10001", "11110", "10001", "10001", "11110"]
+D = ["11110", "10001", "10001", "10001", "10001", "10001", "11110"]
+M = ["10001", "11011", "10101", "10001", "10001", "10001", "10001"]
 
 
 def chunk(tag: bytes, data: bytes) -> bytes:
@@ -66,8 +66,8 @@ def render(size: int, scale: float = 1.0) -> list[bytes]:
                         cell * 0.42,
                     )
 
-    glyph(V, 0)
-    glyph(B, 7)
+    glyph(D, 0)
+    glyph(M, 7)
     return [bytes(px[y * size * 4 : (y + 1) * size * 4]) for y in range(size)]
 
 

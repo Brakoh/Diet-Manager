@@ -57,7 +57,9 @@ export function MealSheet({
   const source = dayById(state.assignment[day.id])
   const dateKey = isoDate(dateForDayIndex(dayIndex))
   const meal = MEALS.find((item) => item.id === mealId) ?? MEALS[0]
-  const text = state.plan[source.id][meal.id]
+  const plan = state.plan
+  if (!plan) return null
+  const text = plan[source.id][meal.id]
   const done = Boolean(state.checks[dateKey]?.[meal.id])
   const parts = splitIngredients(text)
 
@@ -116,6 +118,8 @@ export function SwapSheet({
   const picked = pick ? dayById(pick) : null
   const currentSource = dayById(state.assignment[current.id])
   const pickedSource = pick ? dayById(state.assignment[pick]) : null
+  const plan = state.plan
+  if (!plan) return null
 
   return (
     <Sheet title={`Scambia ${current.label}`} onClose={onClose}>
@@ -138,7 +142,7 @@ export function SwapSheet({
               <span className="choice-plan">
                 {source.id === day.id ? 'Piano originale' : `Ha il piano di ${source.label}`}
               </span>
-              <span className="choice-food">{state.plan[source.id].colazione}</span>
+              <span className="choice-food">{plan[source.id].colazione}</span>
             </button>
           )
         })}
@@ -200,15 +204,23 @@ export function NotesSheet({ onClose }: { onClose: () => void }) {
           </li>
         ))}
       </ol>
-      <h3 className="sheet-subtitle">Testo del nutrizionista</h3>
-      <div className="note-body">
-        {sentences.map((sentence) => (
-          <p key={sentence}>{sentence.endsWith('.') ? sentence : `${sentence}.`}</p>
-        ))}
-      </div>
-      <p className="fine">
-        {state.meta.nutritionist} · Piano del {state.meta.planDate}
-      </p>
+      {sentences.length > 0 ? (
+        <>
+          <h3 className="sheet-subtitle">Testo del nutrizionista</h3>
+          <div className="note-body">
+            {sentences.map((sentence) => (
+              <p key={sentence}>{sentence.endsWith('.') ? sentence : `${sentence}.`}</p>
+            ))}
+          </div>
+        </>
+      ) : null}
+      {state.meta.nutritionist || state.meta.planDate ? (
+        <p className="fine">
+          {[state.meta.nutritionist, state.meta.planDate ? `Piano del ${state.meta.planDate}` : '']
+            .filter(Boolean)
+            .join(' · ')}
+        </p>
+      ) : null}
     </Sheet>
   )
 }

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { identityAssignment } from '../data/days'
-import { createDefaultState, loadState, saveState } from '../lib/storage'
+import { loadState, saveState } from '../lib/storage'
 import type { DayId, MealId, Meta, Persisted, Plan } from '../types'
 
 type DietContextValue = {
@@ -11,7 +11,6 @@ type DietContextValue = {
   swapDays: (a: DayId, b: DayId) => void
   resetAssignment: () => void
   applyPlan: (plan: Plan, meta: Meta) => void
-  resetDefault: () => void
 }
 
 const DietContext = createContext<DietContextValue | null>(null)
@@ -70,10 +69,6 @@ export function DietProvider({ children }: { children: ReactNode }) {
           assignment: identityAssignment(),
           checks: {},
         }))
-      },
-      resetDefault: () => {
-        const fresh = createDefaultState()
-        setState((current) => ({ ...fresh, water: current.water }))
       },
     }),
     [persistWarning, state],

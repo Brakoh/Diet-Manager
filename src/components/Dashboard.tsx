@@ -19,6 +19,8 @@ type DashboardProps = {
 
 export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: DashboardProps) {
   const { state, toggleMeal, setWater } = useDiet()
+  const plan = state.plan
+  if (!plan) return null
   const today = todayIndex()
   const date = dateForDayIndex(dayIndex)
   const dateKey = isoDate(date)
@@ -26,7 +28,7 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
   const sourceId = state.assignment[day.id]
   const source = dayById(sourceId)
   const swapped = sourceId !== day.id
-  const meals = state.plan[sourceId]
+  const meals = plan[sourceId]
   const checks = state.checks[dateKey] ?? {}
   const done = MEALS.filter((meal) => checks[meal.id]).length
   const water = state.water[dateKey] ?? 0
@@ -38,7 +40,7 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
         <span className="logo" aria-hidden="true" />
         <div className="brand-block">
           <p className="eyebrow">Piano alimentare</p>
-          <p className="brand">Vittorio Borrello</p>
+          <p className="brand">{state.meta.patient || 'Il tuo piano'}</p>
         </div>
         <button type="button" className="note-link" onClick={onNotes}>
           Note

@@ -12,7 +12,8 @@ import { DietProvider, useDiet } from './state/store'
 type SheetState = null | { type: 'swap' } | { type: 'notes' } | { type: 'meal'; meal: MealId }
 
 function Shell() {
-  const { persistWarning } = useDiet()
+  const { state, persistWarning } = useDiet()
+  const hasPlan = state.plan !== null
   const [tab, setTab] = useState<TabId>('oggi')
   const [dayIndex, setDayIndex] = useState(() => todayIndex())
   const [sheet, setSheet] = useState<SheetState>(null)
@@ -33,6 +34,22 @@ function Shell() {
     setSeed({ ...food, id: Date.now(), hint })
     setSheet(null)
     setTab('sostituzioni')
+  }
+
+  if (!hasPlan) {
+    return (
+      <div className="app">
+        {persistWarning ? (
+          <p className="persist-warning">Non riesco a salvare sul telefono. Lo spazio potrebbe essere pieno.</p>
+        ) : null}
+        <Upload onApplied={setToast} />
+        {toast ? (
+          <p className="toast" role="status">
+            {toast}
+          </p>
+        ) : null}
+      </div>
+    )
   }
 
   return (

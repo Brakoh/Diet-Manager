@@ -12,9 +12,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192.png', 'pwa-512.png'],
       manifest: {
-        name: 'Dieta Borrello',
-        short_name: 'Dieta VB',
-        description: 'Piano alimentare di Vittorio Borrello',
+        name: 'Diet Manager',
+        short_name: 'Diet Manager',
+        description: 'Carica il piano del nutrizionista e seguilo giorno per giorno.',
         lang: 'it',
         dir: 'ltr',
         start_url: base,

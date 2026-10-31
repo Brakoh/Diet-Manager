@@ -21,7 +21,7 @@ export type Meta = {
 
 export type Persisted = {
   version: 1
-  plan: Plan
+  plan: Plan | null
   assignment: Assignment
   checks: Checks
   water: WaterLog

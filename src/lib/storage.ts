@@ -1,8 +1,16 @@
-import { defaultMeta, defaultPlan } from '../data/defaultPlan'
 import { DAY_IDS, identityAssignment, isValidAssignment, MEAL_IDS } from '../data/days'
 import type { Checks, MealId, Meta, Persisted, Plan, WaterLog } from '../types'
 
-export const STORAGE_KEY = 'dieta-borrello-v1'
+export const STORAGE_KEY = 'diet-manager-v1'
+
+const emptyMeta: Meta = {
+  patient: '',
+  nutritionist: '',
+  planDate: '',
+  notes: '',
+  sourceName: '',
+  importedAt: null,
+}
 
 function isPlan(value: unknown): value is Plan {
   if (!value || typeof value !== 'object') return false
@@ -43,33 +51,32 @@ function cleanWater(value: unknown): WaterLog {
 function cleanMeta(value: unknown): Meta {
   const record = value && typeof value === 'object' ? (value as Partial<Meta>) : {}
   return {
-    patient: typeof record.patient === 'string' && record.patient ? record.patient : defaultMeta.patient,
-    nutritionist:
-      typeof record.nutritionist === 'string' && record.nutritionist
-        ? record.nutritionist
-        : defaultMeta.nutritionist,
-    planDate: typeof record.planDate === 'string' && record.planDate ? record.planDate : defaultMeta.planDate,
-    notes: typeof record.notes === 'string' ? record.notes : defaultMeta.notes,
-    sourceName: typeof record.sourceName === 'string' && record.sourceName ? record.sourceName : defaultMeta.sourceName,
+    patient: typeof record.patient === 'string' ? record.patient : '',
+    nutritionist: typeof record.nutritionist === 'string' ? record.nutritionist : '',
+    planDate: typeof record.planDate === 'string' ? record.planDate : '',
+    notes: typeof record.notes === 'string' ? record.notes : '',
+    sourceName: typeof record.sourceName === 'string' ? record.sourceName : '',
     importedAt: typeof record.importedAt === 'string' ? record.importedAt : null,
   }
 }
 
-export function createDefaultState(): Persisted {
+export function createEmptyState(): Persisted {
   return {
     version: 1,
-    plan: defaultPlan,
+    plan: null,
     assignment: identityAssignment(),
     checks: {},
     water: {},
-    meta: defaultMeta,
+    meta: emptyMeta,
   }
 }
 
 export function normalizeState(value: unknown): Persisted {
-  if (!value || typeof value !== 'object') return createDefaultState()
+  if (!value || typeof value !== 'object') return createEmptyState()
   const record = value as Partial<Persisted>
-  if (record.version !== 1 || !isPlan(record.plan)) return createDefaultState()
+  if (record.version !== 1) return createEmptyState()
+  if (record.plan == null) return { ...createEmptyState(), water: cleanWater(record.water) }
+  if (!isPlan(record.plan)) return createEmptyState()
   return {
     version: 1,
     plan: record.plan,
@@ -83,10 +90,10 @@ export function normalizeState(value: unknown): Persisted {
 export function loadState(): Persisted {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return createDefaultState()
+    if (!raw) return createEmptyState()
     return normalizeState(JSON.parse(raw))
   } catch {
-    return createDefaultState()
+    return createEmptyState()
   }
 }
 

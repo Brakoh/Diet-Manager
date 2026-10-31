@@ -19,20 +19,18 @@ function patientName(value: string | null, fallback: string): string {
   return value
 }
 
-export function Upload({ onApplied }: { onApplied: (message: string) => void }) {
-  const { state, applyPlan, resetDefault } = useDiet()
+export function Upload({ onApplied }: { onApplied?: (message: string) => void }) {
+  const { state, applyPlan } = useDiet()
   const [parsed, setParsed] = useState<ParsedPlan | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [armReset, setArmReset] = useState(false)
   const [inputKey, setInputKey] = useState(0)
 
   async function onFile(file: File | undefined) {
     setInputKey((key) => key + 1)
     setError(null)
     setParsed(null)
-    setArmReset(false)
     if (!file) return
     if (!file.name.toLowerCase().endsWith('.docx')) {
       setError('Serve un file .docx.')
@@ -60,6 +58,7 @@ export function Upload({ onApplied }: { onApplied: (message: string) => void }) 
 
   function apply() {
     if (!parsed?.plan) return
+    const first = state.plan === null
     const meta: Meta = {
       patient: patientName(parsed.patient, state.meta.patient),
       nutritionist: parsed.nutritionist ?? state.meta.nutritionist,
@@ -70,7 +69,7 @@ export function Upload({ onApplied }: { onApplied: (message: string) => void }) 
     }
     applyPlan(parsed.plan, meta)
     setParsed(null)
-    onApplied('Piano aggiornato dal file.')
+    onApplied?.(first ? 'Piano caricato.' : 'Piano aggiornato dal file.')
   }
 
   const imported = state.meta.importedAt
@@ -83,15 +82,19 @@ export function Upload({ onApplied }: { onApplied: (message: string) => void }) 
       }).format(new Date(state.meta.importedAt))
     : null
 
+  const hasPlan = state.plan !== null
+
   return (
-    <div className="view">
+    <div className={hasPlan ? 'view' : 'view is-gate'}>
       <header className="page-head">
-        <p className="eyebrow">Documento</p>
-        <h1>Aggiorna il piano</h1>
+        {hasPlan ? null : <span className="logo gate-logo" aria-hidden="true" />}
+        <p className="eyebrow">{hasPlan ? 'Documento' : 'Diet Manager'}</p>
+        <h1>{hasPlan ? 'Aggiorna il piano' : 'Carica il tuo piano'}</h1>
       </header>
       <p className="lead">
-        Scegli il file .docx del nutrizionista. Sul telefono vengono letti i giorni, i quattro pasti e le note.
-        Niente viene inviato a un server.
+        {hasPlan
+          ? 'Scegli un nuovo file .docx del nutrizionista. Sul telefono vengono letti i giorni, i quattro pasti e le note. Niente viene inviato a un server.'
+          : 'Per iniziare scegli il file .docx del nutrizionista. L’app legge i giorni, i quattro pasti e le note sul telefono. Niente viene inviato a un server.'}
       </p>
 
       <label className="drop">
@@ -106,10 +109,12 @@ export function Upload({ onApplied }: { onApplied: (message: string) => void }) 
         <span>dal telefono, da iCloud o da Drive</span>
       </label>
 
-      <p className="fine">
-        Piano attuale: {state.meta.sourceName}
-        {imported ? ` · aggiornato ${imported}` : ` · ${state.meta.planDate}`}
-      </p>
+      {hasPlan ? (
+        <p className="fine">
+          Piano attuale: {state.meta.sourceName}
+          {imported ? ` · aggiornato ${imported}` : state.meta.planDate ? ` · ${state.meta.planDate}` : ''}
+        </p>
+      ) : null}
 
       {error ? <p className="warn">{error}</p> : null}
 
@@ -139,26 +144,13 @@ export function Upload({ onApplied }: { onApplied: (message: string) => void }) 
           <button type="button" className="primary" disabled={!parsed.complete} onClick={apply}>
             Usa questo piano
           </button>
-          <p className="fine">Sostituisce i pasti sul telefono e azzera le spunte. L’acqua resta.</p>
+          <p className="fine">
+            {hasPlan
+              ? 'Sostituisce i pasti sul telefono e azzera le spunte. L’acqua resta.'
+              : 'I pasti restano solo su questo telefono.'}
+          </p>
         </section>
       ) : null}
-
-      <button
-        type="button"
-        className="ghost solid"
-        onClick={() => {
-          if (!armReset) {
-            setArmReset(true)
-            return
-          }
-          resetDefault()
-          setParsed(null)
-          setArmReset(false)
-          onApplied('Piano del 13/10/2026 ripristinato.')
-        }}
-      >
-        {armReset ? 'Conferma ripristino' : 'Torna al piano del 13/10/2026'}
-      </button>
     </div>
   )
 }
