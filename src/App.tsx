@@ -27,7 +27,7 @@ function Shell() {
   }, [toast])
 
   useEffect(() => {
-    document.querySelector('.app')?.scrollTo({ top: 0 })
+    document.querySelector('.app-scroll')?.scrollTo({ top: 0 })
   }, [tab])
 
   function openConvert(food: DetectedFood, hint: string) {
@@ -42,7 +42,9 @@ function Shell() {
         {persistWarning ? (
           <p className="persist-warning">Non riesco a salvare sul telefono. Lo spazio potrebbe essere pieno.</p>
         ) : null}
-        <Upload onApplied={setToast} />
+        <div className="app-scroll">
+          <Upload onApplied={setToast} />
+        </div>
         {toast ? (
           <p className="toast" role="status">
             {toast}
@@ -57,20 +59,22 @@ function Shell() {
       {persistWarning ? (
         <p className="persist-warning">Non riesco a salvare sul telefono. Lo spazio potrebbe essere pieno.</p>
       ) : null}
-      <div hidden={tab !== 'oggi'}>
-        <Dashboard
-          dayIndex={dayIndex}
-          onDayIndex={setDayIndex}
-          onSwap={() => setSheet({ type: 'swap' })}
-          onNotes={() => setSheet({ type: 'notes' })}
-          onMeal={(meal) => setSheet({ type: 'meal', meal })}
-        />
-      </div>
-      <div hidden={tab !== 'sostituzioni'}>
-        <Converter seed={seed} />
-      </div>
-      <div hidden={tab !== 'file'}>
-        <Upload onApplied={setToast} />
+      <div className="app-scroll">
+        <div hidden={tab !== 'oggi'}>
+          <Dashboard
+            dayIndex={dayIndex}
+            onDayIndex={setDayIndex}
+            onSwap={() => setSheet({ type: 'swap' })}
+            onNotes={() => setSheet({ type: 'notes' })}
+            onMeal={(meal) => setSheet({ type: 'meal', meal })}
+          />
+        </div>
+        <div hidden={tab !== 'sostituzioni'}>
+          <Converter seed={seed} />
+        </div>
+        <div hidden={tab !== 'file'}>
+          <Upload onApplied={setToast} />
+        </div>
       </div>
       <TabBar
         tab={tab}

@@ -43,17 +43,25 @@ ul, ol { margin: 0; padding: 0; }
 .app {
   position: fixed;
   top: var(--vv-top, 0px);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
   width: min(430px, 100%);
   height: var(--vv-height, 100dvh);
+  display: flex;
+  flex-direction: column;
   background: var(--bg);
+  overflow: hidden;
+}
+.app-scroll {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: none;
   scrollbar-width: none;
 }
-.app::-webkit-scrollbar { display: none; }
-.app.is-locked { overflow: hidden; }
+.app-scroll::-webkit-scrollbar { display: none; }
+.app.is-locked .app-scroll { overflow: hidden; }
 
 /* iOS home-screen apps report 100dvh short by the status-bar inset and leave a band at the bottom. 100lvh is the full screen. */
 @media (display-mode: standalone), (display-mode: fullscreen) {
@@ -494,7 +502,7 @@ html.is-standalone .app { top: 0; }
 .ghost.solid { background: #2a2a2c; }
 
 .tabbar {
-  position: fixed;
+  position: absolute;
   z-index: 20;
   left: 0;
   right: 0;
@@ -535,7 +543,7 @@ html.is-standalone .app { top: 0; }
 .tab[aria-current='page'] { background: var(--lime); color: var(--ink); }
 
 .toast {
-  position: fixed;
+  position: absolute;
   z-index: 35;
   left: 16px;
   right: 16px;
@@ -556,7 +564,7 @@ html.is-standalone .app { top: 0; }
 }
 
 .backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
   z-index: 40;
   background: rgba(0, 0, 0, 0.62);
