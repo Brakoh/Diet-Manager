@@ -22,6 +22,18 @@ document.addEventListener(
   }) as EventListener,
 )
 
+function syncViewport() {
+  const viewport = window.visualViewport
+  const root = document.documentElement
+  root.style.setProperty('--vv-height', `${viewport?.height ?? window.innerHeight}px`)
+  root.style.setProperty('--vv-top', `${viewport?.offsetTop ?? 0}px`)
+}
+
+syncViewport()
+window.visualViewport?.addEventListener('resize', syncViewport)
+window.visualViewport?.addEventListener('scroll', syncViewport)
+window.addEventListener('orientationchange', syncViewport)
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

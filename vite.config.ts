@@ -19,7 +19,7 @@ export default defineConfig({
         dir: 'ltr',
         start_url: base,
         scope: base,
-        display: 'standalone',
+        display: 'fullscreen',
         orientation: 'portrait',
         background_color: '#0D0D0E',
         theme_color: '#0D0D0E',
