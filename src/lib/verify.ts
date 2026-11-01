@@ -6,6 +6,7 @@ import { defaultPlan } from '../data/defaultPlan'
 import { detectFoods, splitIngredients } from './ingredients'
 import { parsePlanText } from './parseDocx'
 import { convert } from './substitutions'
+import { isMealDue } from './schedule'
 import { normalizeText } from './text'
 import type { Assignment, DayId } from '../types'
 
@@ -35,6 +36,16 @@ near(okGrams('verdure', 'broccoli', 'zucchine', 200), 200)
 assert.equal(convert('cereali', 'pane', 'pasta', 5).ok, false)
 assert.equal(convert('legumi', 'piselli', 'cotti', 50).ok, false)
 assert.equal(convert('legumi', 'piselli', 'secchi', 40).ok, false)
+
+const mealDay = new Date(2026, 10, 1, 12, 0, 0, 0)
+assert.equal(isMealDue(mealDay, 'colazione', new Date(2026, 10, 1, 9, 59)), false)
+assert.equal(isMealDue(mealDay, 'colazione', new Date(2026, 10, 1, 10, 0)), true)
+assert.equal(isMealDue(mealDay, 'pranzo', new Date(2026, 10, 1, 13, 59)), false)
+assert.equal(isMealDue(mealDay, 'pranzo', new Date(2026, 10, 1, 14, 0)), true)
+assert.equal(isMealDue(mealDay, 'spuntino', new Date(2026, 10, 1, 16, 59)), false)
+assert.equal(isMealDue(mealDay, 'spuntino', new Date(2026, 10, 1, 17, 0)), true)
+assert.equal(isMealDue(mealDay, 'cena', new Date(2026, 10, 1, 20, 59)), false)
+assert.equal(isMealDue(mealDay, 'cena', new Date(2026, 10, 1, 21, 0)), true)
 
 function okGrams(category: 'cereali' | 'verdure' | 'legumi', from: string, to: string, amount: number) {
   const result = convert(category, from, to, amount)

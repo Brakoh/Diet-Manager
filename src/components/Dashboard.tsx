@@ -1,5 +1,7 @@
 import { DAYS, dayById, MEALS } from '../data/days'
 import { dateForDayIndex, formatDayMonth, isoDate, todayIndex } from '../lib/dates'
+import { isMealComplete, useNow } from '../lib/schedule'
+import { WATER_MAX_ML } from '../lib/storage'
 import { formatLiters } from '../lib/text'
 import type { MealId } from '../types'
 import { useDiet } from '../state/store'
@@ -8,6 +10,7 @@ import { IconCheck, IconSwap } from './icons'
 
 const GLASS_ML = 250
 const GOAL_ML = 2000
+const GLASS_COUNT = GOAL_ML / GLASS_ML
 
 type DashboardProps = {
   dayIndex: number
@@ -18,11 +21,12 @@ type DashboardProps = {
 }
 
 export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: DashboardProps) {
-  const { state, toggleMeal, setWater } = useDiet()
+  const { state, setWater } = useDiet()
+  const now = useNow()
   const plan = state.plan
   if (!plan) return null
-  const today = todayIndex()
-  const date = dateForDayIndex(dayIndex)
+  const today = todayIndex(now)
+  const date = dateForDayIndex(dayIndex, now)
   const dateKey = isoDate(date)
   const day = DAYS[dayIndex]
   const sourceId = state.assignment[day.id]
@@ -30,7 +34,8 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
   const swapped = sourceId !== day.id
   const meals = plan[sourceId]
   const checks = state.checks[dateKey] ?? {}
-  const done = MEALS.filter((meal) => checks[meal.id]).length
+  const completeMeal = (mealId: MealId) => isMealComplete(date, mealId, Boolean(checks[mealId]), now)
+  const done = MEALS.filter((meal) => completeMeal(meal.id)).length
   const water = state.water[dateKey] ?? 0
   const glasses = Math.round(water / GLASS_ML)
 
@@ -110,16 +115,10 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
 
       <div className="meal-grid">
         {MEALS.map((meal) => {
-          const complete = Boolean(checks[meal.id])
+          const complete = completeMeal(meal.id)
           return (
             <article key={meal.id} className={complete ? 'meal is-done' : 'meal'}>
-              <button
-                type="button"
-                className="ring-btn"
-                aria-pressed={complete}
-                aria-label={complete ? `${meal.label} fatto, annulla` : `Segna ${meal.label} come fatto`}
-                onClick={() => toggleMeal(dateKey, meal.id)}
-              >
+              <div className="ring-btn" aria-hidden="true">
                 <DottedRing
                   value={complete ? 1 : 0}
                   size={56}
@@ -129,8 +128,13 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
                   thickness={3}
                   center={complete ? <IconCheck /> : null}
                 />
-              </button>
-              <button type="button" className="meal-open" onClick={() => onMeal(meal.id)}>
+              </div>
+              <button
+                type="button"
+                className="meal-open"
+                aria-label={complete ? `${meal.label}, fatto` : meal.label}
+                onClick={() => onMeal(meal.id)}
+              >
                 <span className="meal-name">{meal.label}</span>
                 <span className="meal-lead">{meals[meal.id]}</span>
               </button>
@@ -140,56 +144,39 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
       </div>
 
       <section className="card water" aria-label="Acqua">
+        <div className="water-head">
+          <p className={water >= GOAL_ML ? 'eyebrow is-done' : 'eyebrow'}>{water >= GOAL_ML ? 'Fatto' : 'Acqua'}</p>
+          <p className="water-value" aria-live="polite">
+            {formatLiters(water)}
+          </p>
+        </div>
         <div className="water-line">
-          <div>
-            <p className={glasses * GLASS_ML >= GOAL_ML ? 'eyebrow is-done' : 'eyebrow'}>
-              {glasses * GLASS_ML >= GOAL_ML ? 'Fatto' : 'Acqua'}
-            </p>
-            <p className="water-value" aria-live="polite">
-              {formatLiters(water)}
-            </p>
-          </div>
-          <div className="glasses" role="group" aria-label="Bicchieri da 250 millilitri, un tocco aggiunge fino a quel bicchiere">
-          {Array.from({ length: 8 }, (_, index) => {
-            const target = index + 1
-            const on = index < glasses
-            return (
-              <button
-                key={index}
-                type="button"
-                className={on ? 'glass is-on' : 'glass'}
-                aria-pressed={on}
-                aria-label={`${target * GLASS_ML} ml`}
-                data-testid={index === 0 ? 'water-glass' : undefined}
-                onClick={() => setWater(dateKey, (target === glasses ? target - 1 : target) * GLASS_ML)}
-              />
-            )
-          })}
-          </div>
           <button
             type="button"
             className="icon-btn"
             onClick={() => setWater(dateKey, water - GLASS_ML)}
-            disabled={glasses === 0}
+            disabled={water === 0}
             aria-label="Togli 250 ml"
           >
             −
           </button>
+          <div className="glasses" aria-hidden="true">
+            {Array.from({ length: GLASS_COUNT }, (_, index) => (
+              <span key={index} className={index < Math.min(glasses, GLASS_COUNT) ? 'glass is-on' : 'glass'} />
+            ))}
+          </div>
+          <button
+            type="button"
+            className="icon-btn"
+            onClick={() => setWater(dateKey, water + GLASS_ML)}
+            disabled={water >= WATER_MAX_ML}
+            aria-label="Aggiungi 250 ml"
+            data-testid="water-plus"
+          >
+            +
+          </button>
         </div>
       </section>
-
-      <div className="pair">
-        <button type="button" className="card info-card" onClick={onNotes}>
-          <span className="eyebrow">Note</span>
-          <strong>Pesa a crudo</strong>
-          <span>Olio, spezie, cottura</span>
-        </button>
-        <button type="button" className="card info-card" onClick={onSwap}>
-          <span className="eyebrow">Vincolo</span>
-          <strong>Giornata intera</strong>
-          <span>I pasti restano nel loro giorno</span>
-        </button>
-      </div>
 
       </div>
   )

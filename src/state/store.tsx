@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { identityAssignment } from '../data/days'
-import { loadState, saveState } from '../lib/storage'
+import { WATER_MAX_ML, loadState, saveState } from '../lib/storage'
 import type { DayId, MealId, Meta, Persisted, Plan } from '../types'
 
 type DietContextValue = {
@@ -39,7 +39,7 @@ export function DietProvider({ children }: { children: ReactNode }) {
         })
       },
       setWater: (date, ml) => {
-        const amount = Math.max(0, Math.min(2000, Math.round(ml)))
+        const amount = Math.max(0, Math.min(WATER_MAX_ML, Math.round(ml)))
         setState((current) => {
           const water = { ...current.water }
           if (amount === 0) delete water[date]

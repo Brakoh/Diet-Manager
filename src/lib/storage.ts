@@ -2,6 +2,7 @@ import { DAY_IDS, identityAssignment, isValidAssignment, MEAL_IDS } from '../dat
 import type { Checks, MealId, Meta, Persisted, Plan, WaterLog } from '../types'
 
 export const STORAGE_KEY = 'diet-manager-v1'
+export const WATER_MAX_ML = 10000
 
 const emptyMeta: Meta = {
   patient: '',
@@ -42,7 +43,7 @@ function cleanWater(value: unknown): WaterLog {
   const next: WaterLog = {}
   for (const [date, amount] of Object.entries(value as Record<string, unknown>)) {
     if (typeof amount === 'number' && Number.isFinite(amount)) {
-      next[date] = Math.max(0, Math.min(2000, Math.round(amount)))
+      next[date] = Math.max(0, Math.min(WATER_MAX_ML, Math.round(amount)))
     }
   }
   return next

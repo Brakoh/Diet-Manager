@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { DAYS, dayById, MEALS } from '../data/days'
 import { PLAN_RULES } from '../data/rules'
 import { dateForDayIndex, isoDate } from '../lib/dates'
+import { MEAL_CUTOFF_HOUR, isMealDue, useNow } from '../lib/schedule'
 import { detectFoods, splitIngredients, type DetectedFood } from '../lib/ingredients'
 import { formatNumber } from '../lib/text'
 import type { DayId, MealId } from '../types'
@@ -53,14 +54,18 @@ export function MealSheet({
   onConvert: (food: DetectedFood, hint: string) => void
 }) {
   const { state, toggleMeal } = useDiet()
+  const now = useNow()
   const day = DAYS[dayIndex]
   const source = dayById(state.assignment[day.id])
-  const dateKey = isoDate(dateForDayIndex(dayIndex))
+  const date = dateForDayIndex(dayIndex, now)
+  const dateKey = isoDate(date)
   const meal = MEALS.find((item) => item.id === mealId) ?? MEALS[0]
   const plan = state.plan
   if (!plan) return null
   const text = plan[source.id][meal.id]
-  const done = Boolean(state.checks[dateKey]?.[meal.id])
+  const manual = Boolean(state.checks[dateKey]?.[meal.id])
+  const scheduled = isMealDue(date, meal.id, now)
+  const done = scheduled || manual
   const parts = splitIngredients(text)
 
   return (
@@ -94,8 +99,14 @@ export function MealSheet({
         })}
       </ul>
       <p className="fine">Questo pasto resta in questa giornata. Puoi mangiarlo quando vuoi.</p>
-      <button type="button" className={done ? 'ghost solid' : 'primary'} onClick={() => toggleMeal(dateKey, meal.id)}>
-        {done ? 'Annulla spunta' : 'Segna come fatto'}
+      <p className="fine">Si spunta da solo dopo le {MEAL_CUTOFF_HOUR[meal.id]}.</p>
+      <button
+        type="button"
+        className={done ? 'ghost solid' : 'primary'}
+        disabled={scheduled}
+        onClick={() => toggleMeal(dateKey, meal.id)}
+      >
+        {scheduled ? 'Segnato in automatico' : manual ? 'Annulla spunta' : 'Segna come fatto'}
       </button>
     </Sheet>
   )
