@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react'
-import { DAYS, dayById } from '../data/days'
+import { DAYS, MEALS, dayById } from '../data/days'
 import { GROCERY_CATEGORIES } from '../data/groceryCatalog'
 import { todayIndex } from '../lib/dates'
 import { buildGrocery, formatPortion, type GroceryAlt, type GroceryItem } from '../lib/grocery'
 import { useNow } from '../lib/schedule'
-import type { DayId } from '../types'
+import type { DayId, MealId } from '../types'
 import { useDiet } from '../state/store'
 import { IconCheck } from './icons'
 
@@ -40,21 +40,24 @@ function GroceryRow({
   item,
   bought,
   filter,
+  meal,
   onToggle,
 }: {
   item: GroceryItem
   bought: boolean
   filter: DayFilter
+  meal?: MealId
   onToggle: () => void
 }) {
-  const day = filter === 'tutti' ? null : item.byDay[filter]
-  const amount = day ? formatPortion(day.portion) : null
+  const slot =
+    filter === 'tutti' ? null : meal ? item.byDay[filter]?.meals[meal] : item.byDay[filter]
+  const amount = slot ? formatPortion(slot.portion) : null
   const alt =
     filter === 'tutti'
       ? item.alternatives.length
         ? `Alternativa: ${item.alternatives.join(' o ')}`
         : null
-      : altLine(day?.alternatives ?? [])
+      : altLine(slot?.alternatives ?? [])
 
   return (
     <li className={bought ? 'shop-row is-bought' : 'shop-row'}>
@@ -90,6 +93,7 @@ function GroceryGroup({
   items,
   bought,
   filter,
+  meal,
   onToggle,
 }: {
   id: string
@@ -98,6 +102,7 @@ function GroceryGroup({
   items: GroceryItem[]
   bought: boolean
   filter: DayFilter
+  meal?: MealId
   onToggle: (id: string) => void
 }) {
   if (items.length === 0) return null
@@ -117,6 +122,7 @@ function GroceryGroup({
             item={item}
             bought={bought}
             filter={filter}
+            meal={meal}
             onToggle={() => onToggle(item.id)}
           />
         ))}
@@ -144,10 +150,22 @@ export function GroceryList() {
     .filter((item): item is GroceryItem => Boolean(item))
   const open = visible.filter((item) => !boughtSet.has(item.id))
   const remaining = open.length
-  const grouped = GROCERY_CATEGORIES.map((category) => ({
-    ...category,
-    items: open.filter((item) => item.category === category.id),
-  })).filter((category) => category.items.length > 0)
+  const grouped =
+    filter === 'tutti'
+      ? GROCERY_CATEGORIES.map((category) => ({
+          id: category.id,
+          title: category.title,
+          hint: category.hint,
+          meal: undefined as MealId | undefined,
+          items: open.filter((item) => item.category === category.id),
+        })).filter((category) => category.items.length > 0)
+      : MEALS.map((meal) => ({
+          id: meal.id,
+          title: meal.label,
+          hint: undefined as string | undefined,
+          meal: meal.id,
+          items: open.filter((item) => item.byDay[filter]?.meals[meal.id]),
+        })).filter((meal) => meal.items.length > 0)
 
   function toggle(id: string) {
     setArmReset(false)
@@ -221,6 +239,7 @@ export function GroceryList() {
           items={category.items}
           bought={false}
           filter={filter}
+          meal={category.meal}
           onToggle={toggle}
         />
       ))}

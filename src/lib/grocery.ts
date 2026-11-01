@@ -1,6 +1,6 @@
 import { DAY_IDS, MEAL_IDS } from '../data/days'
 import { GROCERY_CATALOG, locateCatalog, type GroceryCategoryId } from '../data/groceryCatalog'
-import type { Assignment, DayId, Plan } from '../types'
+import type { Assignment, DayId, MealId, Plan } from '../types'
 import { splitIngredients } from './ingredients'
 import { formatNumber, normalizeText } from './text'
 
@@ -15,9 +15,15 @@ export type GroceryAlt = {
   portion: Portion | null
 }
 
+export type GroceryMeal = {
+  portion: Portion | null
+  alternatives: GroceryAlt[]
+}
+
 export type GroceryDay = {
   portion: Portion | null
   alternatives: GroceryAlt[]
+  meals: Partial<Record<MealId, GroceryMeal>>
 }
 
 export type GroceryItem = {
@@ -123,12 +129,21 @@ type Draft = {
 function ensureDay(draft: Draft, day: DayId): GroceryDay {
   const current = draft.byDay[day]
   if (current) return current
-  const created: GroceryDay = { portion: null, alternatives: [] }
+  const created: GroceryDay = { portion: null, alternatives: [], meals: {} }
   draft.byDay[day] = created
   return created
 }
 
-function absorbPart(part: string, day: DayId, drafts: Map<string, Draft>) {
+function ensureMeal(draft: Draft, day: DayId, meal: MealId): GroceryMeal {
+  const slot = ensureDay(draft, day)
+  const current = slot.meals[meal]
+  if (current) return current
+  const created: GroceryMeal = { portion: null, alternatives: [] }
+  slot.meals[meal] = created
+  return created
+}
+
+function absorbPart(part: string, day: DayId, meal: MealId, drafts: Map<string, Draft>) {
   const text = normalizeText(part)
   const hits = locateCatalog(text)
   if (hits.length === 0) {
@@ -136,7 +151,7 @@ function absorbPart(part: string, day: DayId, drafts: Map<string, Draft>) {
     if (!label) return
     const id = `altro:${slug(label)}`
     const draft = drafts.get(id) ?? { id, label, category: 'altro', byDay: {} }
-    ensureDay(draft, day)
+    ensureMeal(draft, day, meal)
     drafts.set(id, draft)
     return
   }
@@ -155,7 +170,9 @@ function absorbPart(part: string, day: DayId, drafts: Map<string, Draft>) {
       primaryPortion = ownPortion
       const draft = drafts.get(hit.id) ?? { id: hit.id, label: entry.label, category: entry.category, byDay: {} }
       const slot = ensureDay(draft, day)
+      const mealSlot = ensureMeal(draft, day, meal)
       slot.portion = mergePortion(slot.portion, ownPortion)
+      mealSlot.portion = mergePortion(mealSlot.portion, ownPortion)
       drafts.set(hit.id, draft)
       return
     }
@@ -164,8 +181,13 @@ function absorbPart(part: string, day: DayId, drafts: Map<string, Draft>) {
     const owner = drafts.get(primaryId)
     if (!owner) return
     const slot = ensureDay(owner, day)
-    if (slot.alternatives.some((item) => item.id === hit.id)) return
-    slot.alternatives.push({ id: hit.id, label: entry.label, portion })
+    const mealSlot = ensureMeal(owner, day, meal)
+    if (!slot.alternatives.some((item) => item.id === hit.id)) {
+      slot.alternatives.push({ id: hit.id, label: entry.label, portion })
+    }
+    if (!mealSlot.alternatives.some((item) => item.id === hit.id)) {
+      mealSlot.alternatives.push({ id: hit.id, label: entry.label, portion })
+    }
   })
 }
 
@@ -174,7 +196,7 @@ export function buildGrocery(plan: Plan, assignment: Assignment): GroceryItem[] 
   for (const day of DAY_IDS) {
     const meals = plan[assignment[day]]
     for (const mealId of MEAL_IDS) {
-      for (const part of splitIngredients(meals[mealId])) absorbPart(part, day, drafts)
+      for (const part of splitIngredients(meals[mealId])) absorbPart(part, day, mealId, drafts)
     }
   }
 
