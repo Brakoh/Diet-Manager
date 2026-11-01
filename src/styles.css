@@ -55,6 +55,24 @@ ul, ol { margin: 0; padding: 0; }
 .app::-webkit-scrollbar { display: none; }
 .app.is-locked { overflow: hidden; }
 
+/* iOS home-screen apps report 100dvh short by the status-bar inset and leave a band at the bottom. 100lvh is the full screen. */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  html, body, #root, .app {
+    height: 100lvh;
+    min-height: 100lvh;
+  }
+  .app { top: 0; }
+}
+html.is-standalone,
+html.is-standalone body,
+html.is-standalone #root,
+html.is-standalone .app {
+  height: 100lvh;
+  min-height: 100lvh;
+  min-height: -webkit-fill-available;
+}
+html.is-standalone .app { top: 0; }
+
 .view {
   padding:
     calc(12px + env(safe-area-inset-top))

@@ -22,9 +22,23 @@ document.addEventListener(
   }) as EventListener,
 )
 
+function isHomeScreenApp() {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: fullscreen)').matches ||
+    ('standalone' in navigator && navigator.standalone === true)
+  )
+}
+
 function syncViewport() {
-  const viewport = window.visualViewport
   const root = document.documentElement
+  if (isHomeScreenApp()) {
+    root.classList.add('is-standalone')
+    root.style.setProperty('--vv-top', '0px')
+    root.style.removeProperty('--vv-height')
+    return
+  }
+  const viewport = window.visualViewport
   root.style.setProperty('--vv-height', `${viewport?.height ?? window.innerHeight}px`)
   root.style.setProperty('--vv-top', `${viewport?.offsetTop ?? 0}px`)
 }

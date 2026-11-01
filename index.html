@@ -4,8 +4,17 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
+      content="viewport-fit=cover, width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no"
     />
+    <script>
+      ;(function () {
+        var standalone =
+          window.matchMedia('(display-mode: standalone)').matches ||
+          window.matchMedia('(display-mode: fullscreen)').matches ||
+          window.navigator.standalone === true
+        if (standalone) document.documentElement.classList.add('is-standalone')
+      })()
+    </script>
     <meta name="theme-color" content="#0D0D0E" />
     <meta name="color-scheme" content="dark" />
     <meta name="description" content="Carica il piano del nutrizionista e seguilo giorno per giorno." />
