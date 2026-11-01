@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react'
 import { DAYS, dayById, MEALS } from '../data/days'
 import { PLAN_RULES } from '../data/rules'
 import { dateForDayIndex, isoDate } from '../lib/dates'
@@ -9,29 +9,94 @@ import type { DayId, MealId } from '../types'
 import { useDiet } from '../state/store'
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  const sheetRef = useRef<HTMLDivElement>(null)
+  const drag = useRef({ active: false, startY: 0 })
+  const closed = useRef(false)
+  const [shown, setShown] = useState(false)
+  const [offset, setOffset] = useState(0)
+  const [dragging, setDragging] = useState(false)
+
+  function dismiss() {
+    if (closed.current) return
+    const height = sheetRef.current?.offsetHeight ?? 480
+    setDragging(false)
+    setOffset(height + 48)
+  }
+
   useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setShown(true))
+    })
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') dismiss()
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [])
+
+  function onPointerDown(event: ReactPointerEvent<HTMLButtonElement>) {
+    drag.current = { active: true, startY: event.clientY }
+    setDragging(true)
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      /* pointer capture is unavailable for untrusted events */
+    }
+  }
+
+  function onPointerMove(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (!drag.current.active) return
+    setOffset(Math.max(0, event.clientY - drag.current.startY))
+  }
+
+  function onPointerUp() {
+    if (!drag.current.active) return
+    drag.current.active = false
+    setDragging(false)
+    setOffset((current) => (current > 72 ? (sheetRef.current?.offsetHeight ?? 480) + 48 : 0))
+  }
 
   return (
-    <div className="backdrop" onClick={onClose} role="presentation">
+    <div className="backdrop" onClick={dismiss} role="presentation">
       <div
-        className="sheet"
+        ref={sheetRef}
+        className={dragging ? 'sheet is-dragging' : 'sheet'}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
+        style={{
+          transform: shown ? `translateY(${offset}px)` : 'translateY(100%)',
+          transition: dragging ? 'none' : undefined,
+        }}
         onClick={(event) => event.stopPropagation()}
+        onTransitionEnd={(event) => {
+          if (event.propertyName !== 'transform' || event.target !== sheetRef.current) return
+          if (offset > 72 && !closed.current) {
+            closed.current = true
+            onClose()
+          }
+        }}
       >
         <div className="sheet-top">
-          <div className="handle" />
+          <button
+            type="button"
+            className="handle-hit"
+            aria-label="Trascina in basso per chiudere"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <span className="handle" />
+          </button>
           <div className="sheet-head">
             <h2>{title}</h2>
-            <button type="button" className="icon-btn" onClick={onClose} aria-label="Chiudi">
+            <button type="button" className="icon-btn" onClick={dismiss} aria-label="Chiudi">
               ×
             </button>
           </div>

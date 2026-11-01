@@ -117,8 +117,14 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
         {MEALS.map((meal) => {
           const complete = completeMeal(meal.id)
           return (
-            <article key={meal.id} className={complete ? 'meal is-done' : 'meal'}>
-              <div className="ring-btn" aria-hidden="true">
+            <button
+              key={meal.id}
+              type="button"
+              className={complete ? 'meal is-done' : 'meal'}
+              aria-label={complete ? `${meal.label}, fatto` : meal.label}
+              onClick={() => onMeal(meal.id)}
+            >
+              <span className="ring-btn" aria-hidden="true">
                 <DottedRing
                   value={complete ? 1 : 0}
                   size={56}
@@ -128,17 +134,10 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
                   thickness={3}
                   center={complete ? <IconCheck /> : null}
                 />
-              </div>
-              <button
-                type="button"
-                className="meal-open"
-                aria-label={complete ? `${meal.label}, fatto` : meal.label}
-                onClick={() => onMeal(meal.id)}
-              >
-                <span className="meal-name">{meal.label}</span>
-                <span className="meal-lead">{meals[meal.id]}</span>
-              </button>
-            </article>
+              </span>
+              <span className="meal-name">{meal.label}</span>
+              <span className="meal-lead">{meals[meal.id]}</span>
+            </button>
           )
         })}
       </div>
