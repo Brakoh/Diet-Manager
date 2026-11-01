@@ -335,11 +335,31 @@ html.is-standalone .app { top: 0; }
   color: rgba(255, 255, 255, 0.84);
   text-align: center;
 }
+.app-scroll > div:not([hidden]):has(> [data-testid="dashboard"]) {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+[data-testid="dashboard"] {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 [data-testid="dashboard"] .week { margin: 8px 0 6px; }
 [data-testid="dashboard"] .day { height: 42px; }
 [data-testid="dashboard"] .section-head { margin: 8px 2px 4px; }
-[data-testid="dashboard"] .meal { padding: 8px 8px 10px; gap: 4px; border-radius: 22px; }
-[data-testid="dashboard"] .meal-grid { gap: 6px; }
+[data-testid="dashboard"] .meal {
+  padding: 8px 8px 10px;
+  gap: 4px;
+  border-radius: 22px;
+  justify-content: center;
+}
+[data-testid="dashboard"] .meal-grid {
+  flex: 1;
+  gap: 6px;
+  grid-template-rows: 1fr 1fr;
+}
+[data-testid="dashboard"] .water { margin-top: 8px; }
 
 .page-head { margin-bottom: 12px; }
 .lead { margin-bottom: 14px; color: rgba(255, 255, 255, 0.82); font-size: 15px; line-height: 1.45; }
