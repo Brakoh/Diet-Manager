@@ -8,6 +8,10 @@ export const MEAL_CUTOFF_HOUR: Record<MealId, number> = {
   cena: 21,
 }
 
+export function formatMealCutoff(meal: MealId): string {
+  return `${String(MEAL_CUTOFF_HOUR[meal]).padStart(2, '0')}:00`
+}
+
 export function isMealDue(day: Date, meal: MealId, now = new Date()): boolean {
   const cutoff = new Date(day)
   cutoff.setHours(MEAL_CUTOFF_HOUR[meal], 0, 0, 0)

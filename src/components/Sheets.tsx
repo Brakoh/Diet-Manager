@@ -2,13 +2,23 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent, ty
 import { DAYS, dayById, MEALS } from '../data/days'
 import { PLAN_RULES } from '../data/rules'
 import { dateForDayIndex, isoDate } from '../lib/dates'
-import { MEAL_CUTOFF_HOUR, isMealDue, useNow } from '../lib/schedule'
+import { formatMealCutoff, isMealDue, useNow } from '../lib/schedule'
 import { detectFoods, splitIngredients, type DetectedFood } from '../lib/ingredients'
 import { formatNumber } from '../lib/text'
 import type { DayId, MealId } from '../types'
 import { useDiet } from '../state/store'
 
-function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+function Sheet({
+  title,
+  kicker,
+  onClose,
+  children,
+}: {
+  title: string
+  kicker?: string
+  onClose: () => void
+  children: ReactNode
+}) {
   const sheetRef = useRef<HTMLDivElement>(null)
   const drag = useRef({ active: false, startY: 0 })
   const closed = useRef(false)
@@ -95,7 +105,10 @@ function Sheet({ title, onClose, children }: { title: string; onClose: () => voi
             <span className="handle" />
           </button>
           <div className="sheet-head">
-            <h2>{title}</h2>
+            <div className="sheet-title">
+              <h2>{title}</h2>
+              {kicker ? <p className="sheet-kicker">{kicker}</p> : null}
+            </div>
             <button type="button" className="icon-btn" onClick={dismiss} aria-label="Chiudi">
               ×
             </button>
@@ -134,11 +147,11 @@ export function MealSheet({
   const parts = splitIngredients(text)
 
   return (
-    <Sheet title={meal.label} onClose={onClose}>
-      <p className="sheet-kicker">
-        {day.label}
-        {source.id !== day.id ? ` · piano di ${source.label}` : ''}
-      </p>
+    <Sheet
+      title={meal.label}
+      kicker={`${day.label}${source.id !== day.id ? ` · piano di ${source.label}` : ''}`}
+      onClose={onClose}
+    >
       <ul className="ingredients">
         {parts.map((part) => {
           const foods = detectFoods(part)
@@ -163,16 +176,15 @@ export function MealSheet({
           )
         })}
       </ul>
-      <p className="fine">Questo pasto resta in questa giornata. Puoi mangiarlo quando vuoi.</p>
-      <p className="fine">Si spunta da solo dopo le {MEAL_CUTOFF_HOUR[meal.id]}.</p>
       <button
         type="button"
-        className={done ? 'ghost solid' : 'primary'}
+        className={done ? 'sheet-action ghost solid' : 'sheet-action primary'}
         disabled={scheduled}
         onClick={() => toggleMeal(dateKey, meal.id)}
       >
         {scheduled ? 'Segnato in automatico' : manual ? 'Annulla spunta' : 'Segna come fatto'}
       </button>
+      <p className="fine is-centered">Si spunta da solo dopo le {formatMealCutoff(meal.id)}.</p>
     </Sheet>
   )
 }

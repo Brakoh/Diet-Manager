@@ -110,7 +110,6 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
 
       <div className="section-head">
         <h2>Pasti</h2>
-        <span>Ordine libero</span>
       </div>
 
       <div className="meal-grid">
