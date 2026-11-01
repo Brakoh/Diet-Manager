@@ -82,7 +82,7 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
           </div>
           <DottedRing
             value={done / 4}
-            size={92}
+            size={80}
             dots={28}
             color="#0D0D0E"
             track="rgba(13,13,14,0.22)"
@@ -120,7 +120,7 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
               <span className="ring-btn" aria-hidden="true">
                 <DottedRing
                   value={complete ? 1 : 0}
-                  size={56}
+                  size={48}
                   dots={22}
                   color="#CCFF00"
                   track="#2C2C2E"
@@ -136,38 +136,34 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
       </div>
 
       <section className="card water" aria-label="Acqua">
-        <div className="water-head">
-          <p className={water >= GOAL_ML ? 'eyebrow is-done' : 'eyebrow'}>{water >= GOAL_ML ? 'Fatto' : 'Acqua'}</p>
-          <p className="water-value" aria-live="polite">
-            {formatLiters(water)}
-          </p>
+        <p className={water >= GOAL_ML ? 'eyebrow is-done' : 'eyebrow'}>{water >= GOAL_ML ? 'Fatto' : 'Acqua'}</p>
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={() => setWater(dateKey, water - GLASS_ML)}
+          disabled={water === 0}
+          aria-label="Togli 250 ml"
+        >
+          −
+        </button>
+        <div className="glasses" aria-hidden="true">
+          {Array.from({ length: GLASS_COUNT }, (_, index) => (
+            <span key={index} className={index < Math.min(glasses, GLASS_COUNT) ? 'glass is-on' : 'glass'} />
+          ))}
         </div>
-        <div className="water-line">
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={() => setWater(dateKey, water - GLASS_ML)}
-            disabled={water === 0}
-            aria-label="Togli 250 ml"
-          >
-            −
-          </button>
-          <div className="glasses" aria-hidden="true">
-            {Array.from({ length: GLASS_COUNT }, (_, index) => (
-              <span key={index} className={index < Math.min(glasses, GLASS_COUNT) ? 'glass is-on' : 'glass'} />
-            ))}
-          </div>
-          <button
-            type="button"
-            className="icon-btn"
-            onClick={() => setWater(dateKey, water + GLASS_ML)}
-            disabled={water >= WATER_MAX_ML}
-            aria-label="Aggiungi 250 ml"
-            data-testid="water-plus"
-          >
-            +
-          </button>
-        </div>
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={() => setWater(dateKey, water + GLASS_ML)}
+          disabled={water >= WATER_MAX_ML}
+          aria-label="Aggiungi 250 ml"
+          data-testid="water-plus"
+        >
+          +
+        </button>
+        <p className="water-value" aria-live="polite">
+          {formatLiters(water)}
+        </p>
       </section>
 
       </div>
