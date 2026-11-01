@@ -10,6 +10,8 @@ export type Checks = Record<string, Partial<Record<MealId, boolean>>>
 
 export type WaterLog = Record<string, number>
 
+export type GroceryChecks = string[]
+
 export type Meta = {
   patient: string
   nutritionist: string
@@ -25,6 +27,7 @@ export type Persisted = {
   assignment: Assignment
   checks: Checks
   water: WaterLog
+  grocery: GroceryChecks
   meta: Meta
 }
 

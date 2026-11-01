@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import mammoth from 'mammoth'
 import { DAY_IDS, identityAssignment, isValidAssignment, MEAL_IDS } from '../data/days'
 import { defaultPlan } from '../data/defaultPlan'
+import { buildGrocery, formatPortion } from './grocery'
 import { detectFoods, splitIngredients } from './ingredients'
 import { parsePlanText } from './parseDocx'
 import { convert } from './substitutions'
@@ -114,6 +115,31 @@ assert.equal(assignment.sab, 'ven')
 assert.equal(assignment.ven, 'gio')
 assert.equal(assignment.gio, 'sab')
 assert.equal(new Set(Object.values(assignment)).size, 7)
+
+const grocery = buildGrocery(defaultPlan, identityAssignment())
+const groceryDays = (id: string) => grocery.find((item) => item.id === id)?.days.join(',') ?? ''
+assert.equal(groceryDays('banana'), 'lun')
+assert.equal(groceryDays('bresaola'), '')
+assert.equal(grocery.find((item) => item.id === 'fesa')?.alternatives.join('|'), 'Bresaola')
+assert.equal(grocery.find((item) => item.id === 'fesa')?.byDay.lun?.alternatives[0]?.id, 'bresaola')
+assert.equal(grocery.find((item) => item.id === 'fesa')?.byDay.sab?.alternatives.length, 0)
+assert.equal(groceryDays('crema-novi'), 'mer,dom')
+assert.equal(groceryDays('dolcetto'), 'dom')
+assert.equal(groceryDays('olio'), 'lun,mar,mer,gio,ven,sab,dom')
+assert.equal(groceryDays('tonno-scatola'), 'mar')
+assert.equal(groceryDays('tonno-fresco'), '')
+assert.equal(groceryDays('salmone-affumicato'), '')
+assert.equal(groceryDays('pesce'), 'gio')
+assert.equal(grocery.find((item) => item.id === 'pesce')?.byDay.gio?.alternatives[0]?.id, 'tonno-fresco')
+assert.equal(groceryDays('pasta-legumi'), '')
+assert.equal(grocery.find((item) => item.id === 'legumi')?.alternatives.includes('Pasta di legumi'), true)
+assert.equal(formatPortion(grocery.find((item) => item.id === 'fesa')?.byDay.lun?.portion ?? null), '50 g')
+assert.equal(formatPortion(grocery.find((item) => item.id === 'fesa')?.byDay.lun?.alternatives[0]?.portion ?? null), '40 g')
+assert.equal(formatPortion(grocery.find((item) => item.id === 'olio')?.byDay.lun?.portion ?? null), '20 ml')
+assert.equal(formatPortion(grocery.find((item) => item.id === 'banana')?.byDay.lun?.portion ?? null), '150 g')
+assert.ok(grocery.some((item) => item.category === 'altro' && /pizza/i.test(item.label)))
+const swappedPlan = buildGrocery(defaultPlan, { ...identityAssignment(), lun: 'mar', mar: 'lun' })
+assert.equal(swappedPlan.find((item) => item.id === 'banana')?.days.join(','), 'mar')
 
 const buffer = fs.readFileSync('BORRELLO VITTORIO 13-10-2026.docx')
 const extracted = await mammoth.extractRawText({ buffer })

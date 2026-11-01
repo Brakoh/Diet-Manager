@@ -1,5 +1,5 @@
 import { DAY_IDS, identityAssignment, isValidAssignment, MEAL_IDS } from '../data/days'
-import type { Checks, MealId, Meta, Persisted, Plan, WaterLog } from '../types'
+import type { Checks, GroceryChecks, MealId, Meta, Persisted, Plan, WaterLog } from '../types'
 
 export const STORAGE_KEY = 'diet-manager-v1'
 export const WATER_MAX_ML = 10000
@@ -49,6 +49,18 @@ function cleanWater(value: unknown): WaterLog {
   return next
 }
 
+function cleanGrocery(value: unknown): GroceryChecks {
+  if (!Array.isArray(value)) return []
+  const seen = new Set<string>()
+  const next: string[] = []
+  for (const id of value) {
+    if (typeof id !== 'string' || !id || seen.has(id)) continue
+    seen.add(id)
+    next.push(id)
+  }
+  return next
+}
+
 function cleanMeta(value: unknown): Meta {
   const record = value && typeof value === 'object' ? (value as Partial<Meta>) : {}
   return {
@@ -68,6 +80,7 @@ export function createEmptyState(): Persisted {
     assignment: identityAssignment(),
     checks: {},
     water: {},
+    grocery: [],
     meta: emptyMeta,
   }
 }
@@ -76,7 +89,9 @@ export function normalizeState(value: unknown): Persisted {
   if (!value || typeof value !== 'object') return createEmptyState()
   const record = value as Partial<Persisted>
   if (record.version !== 1) return createEmptyState()
-  if (record.plan == null) return { ...createEmptyState(), water: cleanWater(record.water) }
+  if (record.plan == null) {
+    return { ...createEmptyState(), water: cleanWater(record.water), grocery: cleanGrocery(record.grocery) }
+  }
   if (!isPlan(record.plan)) return createEmptyState()
   return {
     version: 1,
@@ -84,6 +99,7 @@ export function normalizeState(value: unknown): Persisted {
     assignment: isValidAssignment(record.assignment) ? record.assignment : identityAssignment(),
     checks: cleanChecks(record.checks),
     water: cleanWater(record.water),
+    grocery: cleanGrocery(record.grocery),
     meta: cleanMeta(record.meta),
   }
 }

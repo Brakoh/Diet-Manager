@@ -72,12 +72,6 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
         })}
       </div>
 
-      {dayIndex !== today ? (
-        <button type="button" className="text-link" onClick={() => onDayIndex(today)}>
-          Torna a oggi
-        </button>
-      ) : null}
-
       <section className="hero" data-testid="hero">
         <div className="hero-top">
           <div className="hero-copy">

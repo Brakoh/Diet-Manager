@@ -1,10 +1,11 @@
-import { IconFile, IconSwap, IconToday } from './icons'
+import { IconFile, IconShop, IconSwap, IconToday } from './icons'
 
-export type TabId = 'oggi' | 'sostituzioni' | 'file'
+export type TabId = 'oggi' | 'sostituzioni' | 'spesa' | 'file'
 
 const TABS: { id: TabId; label: string; icon: typeof IconToday }[] = [
   { id: 'oggi', label: 'Oggi', icon: IconToday },
   { id: 'sostituzioni', label: 'Sostituzioni', icon: IconSwap },
+  { id: 'spesa', label: 'Spesa', icon: IconShop },
   { id: 'file', label: 'File', icon: IconFile },
 ]
 

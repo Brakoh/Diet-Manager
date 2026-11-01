@@ -34,6 +34,15 @@ export function IconSwap({ size }: IconProps) {
   )
 }
 
+export function IconShop({ size }: IconProps) {
+  return (
+    <svg {...svg(size)}>
+      <path d="M6.5 8h11l-.8 11.5a1.5 1.5 0 0 1-1.5 1.4H8.8a1.5 1.5 0 0 1-1.5-1.4L6.5 8z" />
+      <path d="M9 8V6.2A3 3 0 0 1 12 3.2 3 3 0 0 1 15 6.2V8" />
+    </svg>
+  )
+}
+
 export function IconFile({ size }: IconProps) {
   return (
     <svg {...svg(size)}>

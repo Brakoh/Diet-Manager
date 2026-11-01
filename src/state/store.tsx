@@ -10,6 +10,8 @@ type DietContextValue = {
   setWater: (date: string, ml: number) => void
   swapDays: (a: DayId, b: DayId) => void
   resetAssignment: () => void
+  toggleGrocery: (id: string) => void
+  resetGrocery: () => void
   applyPlan: (plan: Plan, meta: Meta) => void
 }
 
@@ -60,6 +62,16 @@ export function DietProvider({ children }: { children: ReactNode }) {
       },
       resetAssignment: () => {
         setState((current) => ({ ...current, assignment: identityAssignment() }))
+      },
+      toggleGrocery: (id) => {
+        setState((current) => {
+          const has = current.grocery.includes(id)
+          const grocery = has ? current.grocery.filter((item) => item !== id) : [id, ...current.grocery]
+          return { ...current, grocery }
+        })
+      },
+      resetGrocery: () => {
+        setState((current) => ({ ...current, grocery: [] }))
       },
       applyPlan: (plan, meta) => {
         setState((current) => ({

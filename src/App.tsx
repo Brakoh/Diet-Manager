@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Converter, type ConverterSeed } from './components/Converter'
 import { Dashboard } from './components/Dashboard'
+import { GroceryList } from './components/GroceryList'
 import { MealSheet, NotesSheet, SwapSheet } from './components/Sheets'
 import { TabBar, type TabId } from './components/TabBar'
 import { Upload } from './components/Upload'
@@ -71,6 +72,9 @@ function Shell() {
         </div>
         <div hidden={tab !== 'sostituzioni'}>
           <Converter seed={seed} />
+        </div>
+        <div hidden={tab !== 'spesa'}>
+          <GroceryList />
         </div>
         <div hidden={tab !== 'file'}>
           <Upload onApplied={setToast} />
