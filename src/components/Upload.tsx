@@ -93,7 +93,7 @@ export function Upload({ onApplied }: { onApplied?: (message: string) => void })
       </header>
       <p className="lead">
         {hasPlan
-          ? 'Scegli un nuovo file .docx del nutrizionista. Sul telefono vengono letti i giorni, i quattro pasti e le note. Niente viene inviato a un server.'
+          ? 'Carica un nuovo file .docx del nutrizionista per aggiornare il tuo piano alimentare.'
           : 'Per iniziare scegli il file .docx del nutrizionista. L’app legge i giorni, i quattro pasti e le note sul telefono. Niente viene inviato a un server.'}
       </p>
 

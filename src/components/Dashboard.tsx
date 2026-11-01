@@ -136,7 +136,9 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
       </div>
 
       <section className="card water" aria-label="Acqua">
-        <p className={water >= GOAL_ML ? 'eyebrow is-done' : 'eyebrow'}>{water >= GOAL_ML ? 'Fatto' : 'Acqua'}</p>
+        <p className={water >= GOAL_ML ? 'eyebrow is-done' : 'eyebrow'}>
+          <span>{water >= GOAL_ML ? 'Fatto' : 'Acqua'}</span>
+        </p>
         <button
           type="button"
           className="icon-btn"
@@ -162,7 +164,7 @@ export function Dashboard({ dayIndex, onDayIndex, onSwap, onNotes, onMeal }: Das
           +
         </button>
         <p className="water-value" aria-live="polite">
-          {formatLiters(water)}
+          <span>{formatLiters(water)}</span>
         </p>
       </section>
 

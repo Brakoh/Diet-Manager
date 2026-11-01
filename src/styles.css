@@ -240,22 +240,49 @@ html.is-standalone .app { top: 0; }
 }
 .water {
   margin-top: 8px;
-  padding: 8px 10px;
+  padding: 8px 18px 8px 8px;
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.water .eyebrow { flex: none; }
+.water .eyebrow {
+  flex: none;
+  display: inline-grid;
+  justify-items: center;
+  text-align: center;
+}
+.water .eyebrow > span,
+.water .eyebrow::before,
+.water .eyebrow::after {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+}
+.water .eyebrow::before,
+.water .eyebrow::after {
+  visibility: hidden;
+}
+.water .eyebrow::before { content: "Acqua"; }
+.water .eyebrow::after { content: "Fatto"; }
 .water .glasses { flex: 1; min-width: 0; }
 .water .icon-btn { width: 32px; height: 32px; font-size: 20px; }
 .water-value {
   flex: none;
-  min-width: 3.4em;
+  display: inline-grid;
+  justify-items: end;
   font-size: 18px;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   letter-spacing: -0.05em;
   line-height: 1;
-  text-align: right;
+}
+.water-value > span,
+.water-value::before {
+  grid-area: 1 / 1;
+  white-space: nowrap;
+}
+.water-value::before {
+  content: "0,00 L";
+  visibility: hidden;
 }
 .glasses {
   display: grid;
